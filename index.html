@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SALAWE ALUMNI KOBA</title>
+<style>
+body{font-family:sans-serif;background:#0a2a5e;color:white;padding:15px;margin:0}
+.card{background:white;color:#0a2a5e;padding:20px;border-radius:15px;margin:10px 0}
+input,button{width:100%;padding:14px;margin:6px 0;border-radius:10px;border:1px solid #ccc;box-sizing:border-box}
+button{background:#d4af37;color:#0a2a5e;font-weight:bold;border:none}
+.badge{background:#0a2a5e;color:white;padding:10px;border-radius:10px;text-align:center;margin-bottom:15px}
+.hidden{display:none}
+.list-item{padding:10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<h2>🎓 SALAWE ALUMNI KOBA</h2>
+<div class="badge">
+  <b id="idadi">Inapakia...</b><br>
+  <small>Lengo: Wanakikundi 40</small>
+</div>
+
+<div id="usajili" class="card">
+<h3>Jisajili Mara ya Kwanza</h3>
+<input id="jinaJipya" placeholder="Jina kamili">
+<input id="pinJipya" type="password" placeholder="Tengeneza Nywila yako (PIN 4)">
+<input id="pinRudia" type="password" placeholder="Rudia Nywila">
+<button onclick="jisajili()">JISAJILI</button>
+<p style="text-align:center"><a href="#" onclick="onyeshaLogin()">Tayari umejisajili? Ingia hapa</a></p>
+</div>
+
+<div id="login" class="card hidden">
+<h3>Ingia</h3>
+<input id="jinaLogin" placeholder="Jina lako">
+<input id="pinLogin" type="password" placeholder="Nywila yako">
+<button onclick="ingia()">INGIA</button>
+<p style="text-align:center"><a href="#" onclick="onyeshaUsajili()">Hujajisajili? Jisajili</a></p>
+</div>
+
+<div id="dash" class="card hidden">
+<h3 id="sal"></h3>
+<p>Jumla: <b id="jumla"></b> | Wiki: <b id="wiki"></b>/52</p>
+<button onclick="changa()">+ Changa TZS 1,000</button>
+<h4>Waliojisajili (<span id="countList">0</span>)</h4>
+<div id="orodha"></div>
+<button onclick="toka()" style="background:#ccc">Toka</button>
+</div>
+
+<script>
+// Hifadhi ya pamoja kwa kutumia localStorage + trick ya GitHub
+// Kwa mfumo kamili wa watu 40 tofauti, tutaunganisha na Firebase baadaye
+let DB_KEY = 'koba_members_v2';
+let members = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+
+function save(){ localStorage.setItem(DB_KEY, JSON.stringify(members)); updateIdadi(); }
+
+function updateIdadi(){
+ let n = Object.keys(members).length;
+ document.getElementById('idadi').textContent = `Wamejisajili: ${n} / 40`;
+ document.getElementById('countList').textContent = n;
+ let html = '';
+ Object.keys(members).forEach(j=>{
+   html+=`<div class="list-item"><span>${j}</span><span>TZS ${members[j].jumla}</span></div>`;
+ });
+ document.getElementById('orodha').innerHTML = html || 'Hakuna bado';
+}
+
+function jisajili(){
+ let j=jinaJipya.value.trim(); let p=pinJipya.value; let pr=pinRudia.value;
+ if(!j||!p) return alert('Jaza jina na nywila');
+ if(p!==pr) return alert('Nywila hazifanani');
+ if(members[j]) return alert('Jina hili tayari limejisajili! Ingia');
+ members[j]={pin:p, jumla:0, wiki:0, tarehe: new Date().toLocaleDateString()};
+ save();
+ alert('Umejisajili! Sasa ingia'); onyeshaLogin();
+}
+
+function ingia(){
+ let j=jinaLogin.value.trim(); let p=pinLogin.value;
+ if(!members[j]) return alert('Hujajisajili bado');
+ if(members[j].pin!==p) return alert('PIN sio sahihi');
+ localStorage.setItem('koba_current', j);
+ onyeshaDash();
+}
+
+function onyeshaDash(){
+ let j=localStorage.getItem('koba_current');
+ if(!j) return;
+ document.getElementById('usajili').classList.add('hidden');
+ document.getElementById('login').classList.add('hidden');
+ document.getElementById('dash').classList.remove('hidden');
+ document.getElementById('sal').textContent=`Habari, ${j} - Salio: TZS ${members[j].jumla.toLocaleString()}`;
+ document.getElementById('jumla').textContent='TZS '+members[j].jumla;
+ document.getElementById('wiki').textContent=members[j].wiki;
+ updateIdadi();
+}
+
+function changa(){
+ let j=localStorage.getItem('koba_current');
+ members[j].jumla+=1000; members[j].wiki+=1; save(); onyeshaDash();
+ alert('Umechanga 1,000!');
+}
+
+function toka(){ localStorage.removeItem('koba_current'); location.reload(); }
+function onyeshaLogin(){ usajili.classList.add('hidden'); login.classList.remove('hidden'); }
+function onyeshaUsajili(){ login.classList.add('hidden'); usajili.classList.remove('hidden'); }
+
+updateIdadi();
+let cur=localStorage.getItem('koba_current'); if(cur && members[cur]) onyeshaDash();
+</script>
+</body>
+</html>
